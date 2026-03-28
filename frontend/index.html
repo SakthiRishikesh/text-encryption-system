@@ -1,0 +1,144 @@
+
+<html>
+<head>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<title>Text Encryption</title>
+
+</head>
+<canvas id="matrixCanvas"
+class="fixed top-0 left-0 w-full h-full -z-10"></canvas>
+<body class="bg-gradient-to-r from-purple-500 to-blue-500 min-h-screen flex items-center justify-center">
+
+<div class="bg-white p-8 rounded-2xl shadow-2xl w-96
+hover:scale-105
+hover:shadow-purple-500/50
+transition
+duration-300">
+
+
+<h1 class="text-2xl font-bold text-center mb-4">
+🔐 Text Encryption
+</h1>
+
+<input id="text"
+class="border w-full p-2 rounded mb-3 focus:ring-2 focus:ring-blue-400"
+placeholder="Enter text">
+
+
+<select id="algo"
+class="border w-full p-2 rounded mb-3 hover:bg-gray-100">
+
+<option value="aes">AES</option>
+<option value="des">DES</option>
+<option value="rsa">RSA</option>
+
+</select>
+
+
+<div class="flex gap-2">
+
+<button onclick="encrypt()"
+class="bg-green-500 hover:bg-green-700 text-white px-4 py-2 rounded w-full transition">
+
+Encrypt
+
+</button>
+
+<button onclick="decrypt()"
+class="bg-red-500 hover:bg-red-700 text-white px-4 py-2 rounded w-full transition">
+
+Decrypt
+
+</button>
+
+</div>
+
+
+<div id="result"
+class="mt-4 p-3 bg-gray-100 rounded text-sm break-words">
+Result here
+</div>
+
+</div>
+
+
+<script>
+
+async function encrypt() {
+
+const text = document.getElementById("text").value;
+const algo = document.getElementById("algo").value;
+
+const res = await fetch("http://localhost:5000/encrypt", {
+method: "POST",
+headers: { "Content-Type": "application/json" },
+body: JSON.stringify({ text, algo })
+});
+
+const data = await res.json();
+
+document.getElementById("result").innerText = data.result;
+
+}
+
+
+async function decrypt() {
+
+const text = document.getElementById("text").value;
+const algo = document.getElementById("algo").value;
+
+const res = await fetch("http://localhost:5000/decrypt", {
+method: "POST",
+headers: { "Content-Type": "application/json" },
+body: JSON.stringify({ text, algo })
+});
+
+const data = await res.json();
+
+document.getElementById("result").innerText = data.result;
+
+}
+
+const canvas = document.getElementById("matrixCanvas");
+const ctx = canvas.getContext("2d");
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const letters = "01ABCDEFGHIJKLMNOPQRSTUVWXYZ#$%&";
+const fontSize = 14;
+const columns = canvas.width / fontSize;
+
+const drops = Array.from({ length: columns }).fill(1);
+
+function drawMatrix() {
+    ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "#00ff99";
+    ctx.font = fontSize + "px monospace";
+
+    drops.forEach((y, i) => {
+        const text = letters[Math.floor(Math.random() * letters.length)];
+        ctx.fillText(text, i * fontSize, y * fontSize);
+
+        if (y * fontSize > canvas.height && Math.random() > 0.975) {
+            drops[i] = 0;
+        }
+        drops[i]++;
+    });
+}
+
+setInterval(drawMatrix, 50);
+
+window.addEventListener("resize", () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+});
+
+</script>
+
+</body>
+</html>
